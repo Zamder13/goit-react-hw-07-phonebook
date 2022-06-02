@@ -4,16 +4,24 @@ import Filter from "../filter/Filter";
 import { nanoid } from "nanoid";
 import "./App.css";
 import { useDispatch, useSelector } from "react-redux";
+import { contactAdded, filterContact } from "../redux/contactFormSlice";
 import {
-  contactAdded,
-  deleteContact,
-  filterContact,
-} from "../redux/contactFormSlice";
+  useFetchContactsQuery,
+  useDeleteContactMutation,
+  useAddContactMutation,
+} from "../redux/contactsSlice";
 
 const App = () => {
-  const contacts = useSelector((state) => {
-    return state.contacts.items;
-  });
+  const { data: contacts, isFetching } = useFetchContactsQuery();
+  console.log("contacts", contacts);
+  const [deleteContact] = useDeleteContactMutation();
+  const [addContact] = useAddContactMutation();
+
+  // const contacts = useFetchContactsQuery();
+
+  // const contacts = useSelector((state) => {
+  //   return state.contacts.items;
+  // });
 
   const filter = useSelector((state) => {
     return state.contacts.filter;
@@ -21,9 +29,9 @@ const App = () => {
 
   const dispatch = useDispatch();
 
-  const removeContact = (contactId) => {
-    return dispatch(deleteContact(contactId));
-  };
+  // const removeContact = (contactId) => {
+  //   return dispatch(deleteContact(contactId));
+  // };
 
   const setContact = (name, number) => {
     if (
@@ -38,7 +46,9 @@ const App = () => {
         name: name,
         number: number,
       };
-      dispatch(contactAdded(contact));
+
+      addContact(contact);
+      // dispatch(contactAdded(contact));
     }
   };
 
@@ -60,10 +70,12 @@ const App = () => {
       <Form onSubmit={setContact} />
       <h2>Contacts</h2>
       <Filter value={filter} onChange={changeFilter} />
-      <ContactList
-        persons={filteredContacts(contacts)}
-        onDeleteContact={removeContact}
-      />
+      {contacts && !isFetching && (
+        <ContactList
+          persons={filteredContacts(contacts)}
+          onDeleteContact={deleteContact}
+        />
+      )}
     </>
   );
 };
